@@ -28,11 +28,3 @@ Engineering Notes
 definitions.py: Contains centralized configuration for database schemas, Podman container credentials, and file paths to ensure consistency across the pipeline.
 
 uv.lock: Guarantees deterministic builds across different environments, critical for pipeline stability in production.
-
-Final Step to Sync
-Since you've added the README.md and likely updated your code, run this to keep GitHub current:
-
-Bash
-git add README.md pyproject.toml uv.lock
-git commit -m "Align README with uv-based project structure"
-git push origin main
