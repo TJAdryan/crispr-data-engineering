@@ -1,36 +1,38 @@
-CRISPR Data Transformation Pipeline
-Scalable Processing for 21M+ Rows
-Overview
-This project implements a high-performance ETL pipeline designed to process and analyze CRISPR genomic data. The primary objective was to architect a solution capable of handling a 21-million-row dataset on local hardware while maintaining low latency for analytical queries and data integrity during the transfer process.
-
-Technical Stack
-Database Engine: DuckDB (In-process OLAP database for vectorized transformations)
-
-Persistent Storage: PostgreSQL (Managed via Podman for relational persistence)
-
-Orchestration: Python 3.x
-
-Infrastructure: Fedora Linux / VS Code Remote Tunnels
-
-Architecture
-The pipeline follows a three-stage architecture:
-
-Ingestion: Raw CRISPR data is ingested from large-scale CSV/Parquet sources using DuckDB’s zero-copy integration.
-
-Transformation: Data is processed using DuckDB to perform vectorized operations on the 21M row set, minimizing memory overhead compared to standard row-based processing.
-
-Load: Transformed datasets are loaded into a containerized PostgreSQL instance for persistent storage and relational querying.
-
-Engineering Challenges and Solutions
-Memory Management: Leveraged DuckDB's out-of-core processing to transform a 21M row dataset within the constraints of the Fedora host's physical RAM.
-
-Environment Parity: Utilized Podman to containerize the PostgreSQL instance, ensuring the database environment is reproducible and isolated from the host operating system.
-
-Remote Development: Managed the development lifecycle via VS Code Tunnels, enabling consistent access to the Fedora-based compute resources.
-
 Installation and Usage
-Clone the repository: git clone https://github.com/tjadryan/crispr-data-engineering.git
+1. Environment Setup
+This project uses uv for extremely fast, reproducible dependency management. To sync your environment:
 
-Initialize containers: podman-compose up -d
+Bash
+uv sync
+2. Infrastructure
+Ensure Podman is active and start the PostgreSQL container:
 
-Execute pipeline: python src/transform.py
+Bash
+podman-compose up -d
+3. Execution
+The project contains three primary entry points:
+
+Core Pipeline: Executes the DuckDB-to-PostgreSQL ETL process for the 21M row dataset.
+
+Bash
+uv run main.py
+Data Transformation: Specific logic for CRISPR genomic data cleaning and reformatting.
+
+Bash
+uv run transform.py
+Genomic Search: Utility script for querying specific gene sequences within the processed data.
+
+Bash
+uv run gene_search.py
+Engineering Notes
+definitions.py: Contains centralized configuration for database schemas, Podman container credentials, and file paths to ensure consistency across the pipeline.
+
+uv.lock: Guarantees deterministic builds across different environments, critical for pipeline stability in production.
+
+Final Step to Sync
+Since you've added the README.md and likely updated your code, run this to keep GitHub current:
+
+Bash
+git add README.md pyproject.toml uv.lock
+git commit -m "Align README with uv-based project structure"
+git push origin main
