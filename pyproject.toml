@@ -1,0 +1,10 @@
+[project]
+name = "crispr-project1"
+version = "0.1.0"
+...
+dependencies = [
+    "dagster",
+    "dagster-webserver",
+    "duckdb",
+    "psycopg2-binary",
+]
