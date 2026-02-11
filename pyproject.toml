@@ -1,10 +1,13 @@
 [project]
 name = "crispr-project1"
 version = "0.1.0"
-...
+requires-python = ">=3.12"
 dependencies = [
     "dagster",
     "dagster-webserver",
-    "duckdb",
-    "psycopg2-binary",
+    "dagster-pyspark",   # Connects Dagster orchestration to Spark execution
+    "pyspark",           # The engine for the certification
+    "delta-spark",       # The storage format for Databricks (Medallion)
+    "duckdb",            # Keep for quick local lookups
+    "psycopg2-binary",   # Keep for Postgres connectivity
 ]

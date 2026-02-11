@@ -2,6 +2,18 @@ from dagster import asset, Definitions
 import duckdb
 import os
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except Exception:
+    pass
+
+def _get_pg_conn():
+    pg_password = os.environ.get("POSTGRES_PASSWORD")
+    if not pg_password:
+        raise RuntimeError("POSTGRES_PASSWORD is not set")
+    return f"host=localhost user=postgres password={pg_password} dbname=crispr_db"
+
 @asset(group_name="Ingestion")
 def gene_effects_postgres():
     """
@@ -13,7 +25,7 @@ def gene_effects_postgres():
     con.execute("INSTALL postgres; LOAD postgres;")
     
     # Connect to your Podman-managed Postgres
-    pg_conn = "host=localhost user=postgres password=self_assured_complexity dbname=crispr_db"
+    pg_conn = _get_pg_conn()
     con.execute(f"ATTACH '{pg_conn}' AS pg (TYPE POSTGRES);")
     
     # The 'Soul' of the transformation

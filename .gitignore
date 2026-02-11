@@ -1,16 +1,39 @@
+# Secret Management
+.env
+.pgpass
+
 # Python-generated files
 __pycache__/
-*.py[oc]
+*.py[cod]
+*$py.class
+*.so
+
+# Build and Distribution
 build/
 dist/
 wheels/
-*.egg-info
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environments
+.venv/
+env/
+venv/
+ENV/
+
+# Data Files (Crucial for 21M row datasets)
 *.csv
 *.parquet
+*.json
+*.sql
+*.gz
+
+# Local Databases
 *.db
 *.duckdb
-.venv/
-__pycache__/
-.env
-# Virtual environments
-.venv
+*.sqlite
+
+# UV and Project Specifics
+.uv/
+.python-version

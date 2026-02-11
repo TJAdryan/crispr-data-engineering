@@ -1,30 +1,58 @@
+CRISPR Gene Effect Pipeline
+Project Intent and Utility
+This project serves as a high-performance data engineering bridge between raw genomic screening data and operational research insights. It processes the Broad Institute’s DepMap CRISPR (Gene Effect) dataset, which contains over 21 million records representing the dependency scores of approximately 17,000 genes across 1,100+ cancer cell lines.
+
+The primary importance of this system is computational efficiency for therapeutic discovery. Raw genomic data is typically distributed in wide-format CSVs that are difficult to query or join with other datasets. This pipeline transforms that data into a cleaned, indexed, and searchable relational "Gold" layer. This allows researchers to instantly identify "Achilles' heels"—specific genes that cancer cells depend on for survival—without the overhead of parsing massive flat files.
+
+Architecture and Engineering Specs
+The system utilizes a Medallion Architecture to ensure data integrity and performance:
+
+Compute: DuckDB performs in-memory, multi-threaded UNPIVOT operations, processing the 21M row dataset in approximately 60 seconds.
+
+Storage: Containerized PostgreSQL (via Podman) provides persistent, relational storage.
+
+Optimization: B-Tree indexing on gene_symbol enables sub-second query performance.
+
+Data Normalization: Raw headers (e.g., A1BG (1)) are parsed into distinct gene_symbol and entrez_id columns to support relational joins with other biomedical databases.
+
 Installation and Usage
 1. Environment Setup
-This project uses uv for extremely fast, reproducible dependency management. To sync your environment:
+This project uses uv for deterministic dependency management.
 
 Bash
 uv sync
-2. Infrastructure
-Ensure Podman is active and start the PostgreSQL container:
+2. Secret Management
+Configuration is decoupled from code via environment variables. Create a .env file in the root directory:
+
+Plaintext
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=your_secure_password
+POSTGRES_DB=crispr_db
+POSTGRES_HOST=127.0.0.1
+POSTGRES_PORT=5432
+CRISPR_CSV_PATH=/home/username/Downloads/CRISPRGeneEffect.csv
+3. Infrastructure
+Ensure Podman is active and the PostgreSQL service is running:
 
 Bash
-podman-compose up -d
-3. Execution
-The project contains three primary entry points:
-
-Core Pipeline: Executes the DuckDB-to-PostgreSQL ETL process for the 21M row dataset.
-
-Bash
-uv run main.py
-Data Transformation: Specific logic for CRISPR genomic data cleaning and reformatting.
+# Example if using a systemd-managed container
+systemctl --user start postgres
+4. Execution Sequence
+A. Transform and Load: Executes the DuckDB-to-PostgreSQL ETL process.
 
 Bash
-uv run transform.py
-Genomic Search: Utility script for querying specific gene sequences within the processed data.
+uv run python transform.py
+B. Indexing: Apply indexing to the Gold layer for high-speed retrieval.
 
 Bash
-uv run gene_search.py
+psql -h 127.0.0.1 -U postgres -d crispr_db -c "CREATE INDEX idx_gene_symbol ON gene_effects(gene_symbol);"
+C. Genomic Search: Utility script for sub-second gene dependency lookups.
+
+Bash
+uv run python gene_search.py
 Engineering Notes
-definitions.py: Contains centralized configuration for database schemas, Podman container credentials, and file paths to ensure consistency across the pipeline.
+Security: Password prompts are bypassed using a .pgpass file with 0600 permissions, ensuring credentials are never exposed in system process lists.
 
-uv.lock: Guarantees deterministic builds across different environments, critical for pipeline stability in production.
+Data Cleaning: The pipeline utilizes regex and string splitting within the DuckDB layer to ensure symbols match standard NCBI nomenclature.
+
+Scalability: The architecture is designed for vertical scaling, utilizing all available CPU cores on the host machine for data ingestion.
