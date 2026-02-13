@@ -1,0 +1,2 @@
+[32m2026-02-13 17:48:15 -0500[0m - dagster - [34mDEBUG[0m - __ASSET_JOB - 9b4c16cb-e178-4259-8d8f-5d0bca6f4aa9 - 196307 - LOGS_CAPTURED - Started capturing logs in process (pid: 196307).
+[32m2026-02-13 17:48:15 -0500[0m - dagster - [34mDEBUG[0m - __ASSET_JOB - 9b4c16cb-e178-4259-8d8f-5d0bca6f4aa9 - 196307 - gene_effects_table - STEP_START - Started execution of step "gene_effects_table".
