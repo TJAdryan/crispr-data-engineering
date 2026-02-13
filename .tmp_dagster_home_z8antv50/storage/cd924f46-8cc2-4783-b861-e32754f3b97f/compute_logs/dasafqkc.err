@@ -1,10 +1,11 @@
-[32m2026-02-13 17:48:15 -0500[0m - dagster - [34mDEBUG[0m - __ASSET_JOB - 9b4c16cb-e178-4259-8d8f-5d0bca6f4aa9 - 196307 - LOGS_CAPTURED - Started capturing logs in process (pid: 196307).
-[32m2026-02-13 17:48:15 -0500[0m - dagster - [34mDEBUG[0m - __ASSET_JOB - 9b4c16cb-e178-4259-8d8f-5d0bca6f4aa9 - 196307 - gene_effects_table - STEP_START - Started execution of step "gene_effects_table".
-[32m2026-02-13 17:51:26 -0500[0m - dagster - [34mERROR[0m - [31m__ASSET_JOB - 9b4c16cb-e178-4259-8d8f-5d0bca6f4aa9 - 196307 - gene_effects_table - STEP_FAILURE - Execution of step "gene_effects_table" failed.
+[32m2026-02-13 17:54:04 -0500[0m - dagster - [34mDEBUG[0m - __ASSET_JOB - cd924f46-8cc2-4783-b861-e32754f3b97f - 202920 - LOGS_CAPTURED - Started capturing logs in process (pid: 202920).
+[32m2026-02-13 17:54:04 -0500[0m - dagster - [34mDEBUG[0m - __ASSET_JOB - cd924f46-8cc2-4783-b861-e32754f3b97f - 202920 - gene_effects_table - STEP_START - Started execution of step "gene_effects_table".
+[32m2026-02-13 17:54:05 -0500[0m - dagster - [34mERROR[0m - [31m__ASSET_JOB - cd924f46-8cc2-4783-b861-e32754f3b97f - 202920 - gene_effects_table - STEP_FAILURE - Execution of step "gene_effects_table" failed.
 
 dagster._core.errors.DagsterExecutionStepExecutionError: Error occurred while executing op "gene_effects_table"::
 
-_duckdb.BinderException: Binder Error: Index with name "idx_gene_symbol" already exists in schema "public"
+_duckdb.CatalogException: Catalog Error: Table with name gene_effects does not exist!
+Did you mean "screen_map"?
 
 Stack Trace:
   File "/home/dominickryan/Python_Scripts/crispr_project1/.venv/lib64/python3.14/site-packages/dagster/_core/execution/plan/utils.py", line 57, in op_execution_error_boundary
@@ -18,7 +19,7 @@ Stack Trace:
   File "/home/dominickryan/Python_Scripts/crispr_project1/.venv/lib64/python3.14/site-packages/dagster/_core/execution/plan/compute_generator.py", line 115, in invoke_compute_fn
     return fn(context, **args_to_pass) if context_arg_provided else fn(**args_to_pass)
                                                                     ~~^^^^^^^^^^^^^^^^
-  File "/home/dominickryan/Python_Scripts/crispr_project1/assets.py", line 54, in gene_effects_table
-    con.execute("CREATE INDEX idx_gene_symbol ON pg.gene_effects(gene_symbol);")
-    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dominickryan/Python_Scripts/crispr_project1/assets.py", line 41, in gene_effects_table
+    con.execute("CREATE INDEX IF NOT EXISTS idx_gene_symbol ON pg.gene_effects(gene_symbol);")
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 [0m
