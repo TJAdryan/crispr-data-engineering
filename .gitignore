@@ -8,6 +8,10 @@ __pycache__/
 *$py.class
 *.so
 
+# Local Operational Data
+.dagster_home/
+.tmp_dagster_home*/
+
 # Build and Distribution
 build/
 dist/
