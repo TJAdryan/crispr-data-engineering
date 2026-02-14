@@ -1,81 +1,70 @@
 import os
-import duckdb
-from dagster import asset, Output, Definitions, AssetSelection, SensorEvaluationContext, RunRequest, sensor
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import split, regexp_extract, col, expr
+from dagster import asset, sensor, AssetSelection, AssetKey, RunRequest, Output, SensorEvaluationContext, Definitions, DefaultSensorStatus
 from dotenv import load_dotenv
 
 load_dotenv()
 
+def get_spark_session():
+    return (SparkSession.builder
+            .appName("CRISPR_Pipeline")
+            .master("local[2]") 
+            # Changed _2.13 to _2.12 to match your environment
+            .config("spark.jars.packages", "io.delta:delta-spark_2.12:3.0.0") 
+            .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
+            .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
+            .config("spark.driver.extraJavaOptions", 
+                    "-XX:+IgnoreUnrecognizedVMOptions "
+                    "--add-opens=java.base/java.nio=ALL-UNNAMED "
+                    "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED "
+                    "--add-opens=java.base/java.lang=ALL-UNNAMED")
+            .getOrCreate())
+
+            
+# --- ADDED DECORATOR HERE ---
 @asset
-def gene_effects_table():
-    """
-    Transforms raw CRISPR CSV data into an indexed Postgres table.
-    """
+def gene_effects_delta():
     csv_path = os.getenv("CRISPR_CSV_PATH")
-    pg_password = os.getenv("POSTGRES_PASSWORD")
-    pg_user = os.getenv("POSTGRES_USER", "postgres")
-    pg_db = os.getenv("POSTGRES_DB", "crispr_db")
-    pg_host = os.getenv("POSTGRES_HOST", "127.0.0.1")
-    
-    pg_conn = f"host={pg_host} user={pg_user} password={pg_password} dbname={pg_db}"
-    con = duckdb.connect()
-    
-    con.execute("INSTALL postgres; LOAD postgres;")
-    con.execute(f"ATTACH '{pg_conn}' AS pg (TYPE POSTGRES);")
+    spark = get_spark_session()
 
-    # Defensive cleaning
-    con.execute("DROP INDEX IF EXISTS pg.idx_gene_symbol;")
-    con.execute("DROP TABLE IF EXISTS pg.gene_effects CASCADE;")
+    try:
+        df = spark.read.option("header", "true").option("inferSchema", "true").csv(csv_path)
+        first_col = df.columns[0] 
+        gene_cols = [c for c in df.columns if c != first_col]
+        
+        stack_parts = ", ".join([f"'{c}', `{c}`" for c in gene_cols])
+        stack_expr = f"stack({len(gene_cols)}, {stack_parts}) as (gene_symbol_raw, dependency_score)"
 
-    con.execute("BEGIN TRANSACTION;")
-    
-    # Transformation
-    con.execute(f"""
-        CREATE TABLE pg.gene_effects AS 
-        SELECT 
-            "column00000" AS model_id, 
-            split_part(gene_symbol_raw, ' (', 1) AS gene_symbol,
-            regexp_extract(gene_symbol_raw, '\\((.*)\\)', 1) AS entrez_id,
-            dependency_score
-        FROM (
-            UNPIVOT (SELECT * FROM read_csv_auto('{csv_path}'))
-            ON COLUMNS(* EXCLUDE "column00000")
-            INTO NAME gene_symbol_raw VALUE dependency_score
-        );
-    """)
+        final_df = df.select(
+            col(first_col).alias("model_id"),
+            expr(stack_expr)
+        ).withColumn(
+            "gene_symbol", split(col("gene_symbol_raw"), r" \(").getItem(0)
+        ).withColumn(
+            "entrez_id", regexp_extract(col("gene_symbol_raw"), r"\((\d+)\)", 1)
+        ).select("model_id", "gene_symbol", "entrez_id", "dependency_score")
 
-    # Indexing
-    con.execute("CREATE INDEX idx_gene_symbol ON pg.gene_effects(gene_symbol);")
-    
-    con.execute("COMMIT;")
-    con.close()
-    
-    return Output(
-        value=None, 
-        metadata={"row_count": 21093758, "status": "Green"}
-    )
+        output_path = os.path.join(os.getcwd(), "data/delta/gene_effects")
+        final_df.write.format("delta").mode("overwrite").save(output_path)
+        
+        return Output(value=None, metadata={"rows_processed": "Success", "path": output_path})
+        
+    finally:
+        spark.stop()
 
-@sensor(target=AssetSelection.assets(gene_effects_table))
+# Using keys(AssetKey(...)) is more explicit and prevents the "function" type error
+@sensor(target=AssetSelection.keys(AssetKey("gene_effects_delta")))
 def watch_crispr_csv(context: SensorEvaluationContext):
-    """
-    Monitors the CSV file for changes via timestamp.
-    """
     csv_path = os.getenv("CRISPR_CSV_PATH")
-    if not os.path.exists(csv_path):
+    if not csv_path or not os.path.exists(csv_path):
         return
-
-    # Using the file's last modified time as the unique cursor
     last_modified = str(os.path.getmtime(csv_path))
-    
     if context.cursor != last_modified:
         context.update_cursor(last_modified)
-        yield RunRequest(
-            run_key=last_modified,
-            message=f"Detected change in {os.path.basename(csv_path)}."
-        )
+        yield RunRequest(run_key=last_modified)
 
-# This is the "Glue" that fixes the LoadError
-# It explicitly defines what Dagster should load
 defs = Definitions(
-    assets=[gene_effects_table],
+    assets=[gene_effects_delta],
     sensors=[watch_crispr_csv],
 )

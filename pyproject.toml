@@ -6,8 +6,9 @@ dependencies = [
     "dagster",
     "dagster-webserver",
     "dagster-pyspark",   # Connects Dagster orchestration to Spark execution
-    "pyspark",           # The engine for the certification
-    "delta-spark",       # The storage format for Databricks (Medallion)
+    "pyspark==3.5.0",
+    "delta-spark==3.0.0",
     "duckdb",            # Keep for quick local lookups
     "psycopg2-binary",   # Keep for Postgres connectivity
+    "python-dotenv>=1.2.1",
 ]

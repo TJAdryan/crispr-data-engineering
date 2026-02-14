@@ -38,7 +38,9 @@ def gene_effects_postgres():
     """)
     return "21 Million Rows Synchronized"
 
-# This defines the scope of your project for the Dagster UI
+# Project Scope:
 defs = Definitions(
-    assets=[gene_effects_postgres],
+    assets=[gene_effects_table],
+    asset_checks=[check_no_null_symbols], 
+    sensors=[watch_crispr_csv],
 )

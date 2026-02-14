@@ -11,14 +11,8 @@ DESCRIPTION:
 This was the original standalone ETL script. It used DuckDB to unpivot 21M+ rows 
 from the CRISPR Gene Effect CSV and load them into a local Postgres instance.
 
-LIMITATIONS (Why we migrated):
-1. Manual Execution: Required manual CLI triggers for both the script and indexing.
-2. Lack of Idempotency: Did not gracefully handle existing tables or index name conflicts.
-3. No Observability: Lacked run history, logging persistence, and status tracking.
-4. No Automation: Could not detect file changes; required human intervention to refresh data.
-
-The logic has been refactored into a Declarative Asset pattern within Dagster to 
-support event-driven updates and persistent metadata.
+Reason:
+The logic was later refactored into Dagster assets and sensors for better orchestration.
 """
 
 load_dotenv()
