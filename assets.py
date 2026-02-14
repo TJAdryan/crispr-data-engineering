@@ -18,16 +18,20 @@ def gene_effects_table():
     pg_conn = f"host={pg_host} user={pg_user} password={pg_password} dbname={pg_db}"
     con = duckdb.connect()
     
-    # 3. Initialization
+  # 3. Initialization
     con.execute("INSTALL postgres; LOAD postgres;")
     con.execute(f"ATTACH '{pg_conn}' AS pg (TYPE POSTGRES);")
 
-    # 4. Clean Slate
-    # We drop the table and the index to ensure the board is clear
+    # 4. Clean the Registry (Pre-Transaction)
+    # We do this OUTSIDE the transaction to force Postgres to release the index name
+    print("Pre-clearing index and table...")
+    con.execute("DROP INDEX IF EXISTS pg.idx_gene_symbol;")
     con.execute("DROP TABLE IF EXISTS pg.gene_effects CASCADE;")
 
-    # 5. Transformation and Load
-    # This creates the table in Postgres
+    # 5. Transactional Block
+    con.execute("BEGIN TRANSACTION;")
+    
+    print(f"Loading 21M rows from {csv_path}...")
     con.execute(f"""
         CREATE TABLE pg.gene_effects AS 
         SELECT 
@@ -42,20 +46,8 @@ def gene_effects_table():
         );
     """)
 
-    # 6. The "Safety" Line
-    # This forces Postgres to finish the table before we move to the index
-    con.execute("COMMIT;")
-
-    # 7. Optimization
-    # Now that the table is DEFINITELY there, we build the index
+    print("Building search index...")
     con.execute("CREATE INDEX idx_gene_symbol ON pg.gene_effects(gene_symbol);")
     
+    con.execute("COMMIT;")
     con.close()
-    
-    return Output(
-        value=None, 
-        metadata={
-            "row_count": 21093758,
-            "status": "Green"
-        }
-    )

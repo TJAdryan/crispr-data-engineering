@@ -1,10 +1,10 @@
-[32m2026-02-13 17:59:37 -0500[0m - dagster - [34mDEBUG[0m - __ASSET_JOB - 5c723118-e327-4a1f-8935-a6b3057319a4 - 208474 - LOGS_CAPTURED - Started capturing logs in process (pid: 208474).
-[32m2026-02-13 17:59:37 -0500[0m - dagster - [34mDEBUG[0m - __ASSET_JOB - 5c723118-e327-4a1f-8935-a6b3057319a4 - 208474 - gene_effects_table - STEP_START - Started execution of step "gene_effects_table".
-[32m2026-02-13 18:02:59 -0500[0m - dagster - [34mERROR[0m - [31m__ASSET_JOB - 5c723118-e327-4a1f-8935-a6b3057319a4 - 208474 - gene_effects_table - STEP_FAILURE - Execution of step "gene_effects_table" failed.
+[32m2026-02-14 10:15:35 -0500[0m - dagster - [34mDEBUG[0m - __ASSET_JOB - bf821c5f-44fc-462e-8dd1-98dc681c5f32 - 406823 - LOGS_CAPTURED - Started capturing logs in process (pid: 406823).
+[32m2026-02-14 10:15:35 -0500[0m - dagster - [34mDEBUG[0m - __ASSET_JOB - bf821c5f-44fc-462e-8dd1-98dc681c5f32 - 406823 - gene_effects_table - STEP_START - Started execution of step "gene_effects_table".
+[32m2026-02-14 10:19:00 -0500[0m - dagster - [34mERROR[0m - [31m__ASSET_JOB - bf821c5f-44fc-462e-8dd1-98dc681c5f32 - 406823 - gene_effects_table - STEP_FAILURE - Execution of step "gene_effects_table" failed.
 
 dagster._core.errors.DagsterExecutionStepExecutionError: Error occurred while executing op "gene_effects_table"::
 
-_duckdb.TransactionException: TransactionContext Error: cannot commit - no transaction is active
+_duckdb.BinderException: Binder Error: Index with name "idx_gene_symbol" already exists in schema "public"
 
 Stack Trace:
   File "/home/dominickryan/Python_Scripts/crispr_project1/.venv/lib64/python3.14/site-packages/dagster/_core/execution/plan/utils.py", line 57, in op_execution_error_boundary
@@ -19,6 +19,6 @@ Stack Trace:
     return fn(context, **args_to_pass) if context_arg_provided else fn(**args_to_pass)
                                                                     ~~^^^^^^^^^^^^^^^^
   File "/home/dominickryan/Python_Scripts/crispr_project1/assets.py", line 47, in gene_effects_table
-    con.execute("COMMIT;")
-    ~~~~~~~~~~~^^^^^^^^^^^
+    con.execute("CREATE INDEX idx_gene_symbol ON pg.gene_effects(gene_symbol);")
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 [0m

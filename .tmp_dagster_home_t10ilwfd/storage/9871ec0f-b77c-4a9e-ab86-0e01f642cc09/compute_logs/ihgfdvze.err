@@ -1,0 +1,7 @@
+[32m2026-02-14 10:24:48 -0500[0m - dagster - [34mDEBUG[0m - __ASSET_JOB - 9871ec0f-b77c-4a9e-ab86-0e01f642cc09 - 416593 - LOGS_CAPTURED - Started capturing logs in process (pid: 416593).
+[32m2026-02-14 10:24:48 -0500[0m - dagster - [34mDEBUG[0m - __ASSET_JOB - 9871ec0f-b77c-4a9e-ab86-0e01f642cc09 - 416593 - gene_effects_table - STEP_START - Started execution of step "gene_effects_table".
+[32m2026-02-14 10:29:00 -0500[0m - dagster - [34mDEBUG[0m - __ASSET_JOB - 9871ec0f-b77c-4a9e-ab86-0e01f642cc09 - 416593 - gene_effects_table - STEP_OUTPUT - Yielded output "result" of type "Any". (Type check passed).
+[32m2026-02-14 10:29:01 -0500[0m - dagster - [34mDEBUG[0m - __ASSET_JOB - 9871ec0f-b77c-4a9e-ab86-0e01f642cc09 - gene_effects_table - Writing file at: /home/dominickryan/Python_Scripts/crispr_project1/.tmp_dagster_home_t10ilwfd/storage/gene_effects_table using PickledObjectFilesystemIOManager...
+[32m2026-02-14 10:29:01 -0500[0m - dagster - [34mDEBUG[0m - __ASSET_JOB - 9871ec0f-b77c-4a9e-ab86-0e01f642cc09 - 416593 - gene_effects_table - ASSET_MATERIALIZATION - Materialized value gene_effects_table.
+[32m2026-02-14 10:29:01 -0500[0m - dagster - [34mDEBUG[0m - __ASSET_JOB - 9871ec0f-b77c-4a9e-ab86-0e01f642cc09 - 416593 - gene_effects_table - HANDLED_OUTPUT - Handled output "result" using IO manager "io_manager"
+[32m2026-02-14 10:29:01 -0500[0m - dagster - [34mDEBUG[0m - __ASSET_JOB - 9871ec0f-b77c-4a9e-ab86-0e01f642cc09 - 416593 - gene_effects_table - STEP_SUCCESS - Finished execution of step "gene_effects_table" in 4m13s.
