@@ -31,8 +31,8 @@ uv sync
 2. Local Network Notebook Access
 A custom shell script is provided to launch a Jupyter Lab instance. It automatically configures the JVM flags required for Apache Arrow zero-copy memory transfers.
 ```
-Bash
 ```
+Bash
 chmod +x start_jupyter.sh
 ./start_jupyter.sh
 3. Execution and Automation
