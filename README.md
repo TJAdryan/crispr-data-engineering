@@ -25,12 +25,12 @@ Data Normalization: Raw headers (e.g., A1BG (1)) are parsed into distinct gene_s
 Installation and Usage
 1. Environment Setup
 This project uses uv for deterministic dependency management.
-
+```
 Bash
 uv sync
 2. Local Network Notebook Access
 A custom shell script is provided to launch a Jupyter Lab instance. It automatically configures the JVM flags required for Apache Arrow zero-copy memory transfers.
-
+```
 Bash
 ```
 chmod +x start_jupyter.sh
