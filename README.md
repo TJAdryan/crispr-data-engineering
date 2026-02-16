@@ -1,22 +1,26 @@
 CRISPR Gene Effect Pipeline
 Project Intent and Utility
-This project serves as a high-performance data engineering bridge between raw genomic screening data and operational research insights. It processes the Broad Institute’s DepMap CRISPR (Gene Effect) dataset, which contains over 21 million records representing the dependency scores of approximately 17,000 genes across 1,100+ cancer cell lines.
+This project serves as a high-performance data engineering bridge between raw genomic screening data and operational research insights. It processes the Broad Institute’s DepMap CRISPR (Gene Effect) dataset, containing over 21 million records representing the dependency scores of approximately 17,000 genes across 1,100+ cancer cell lines.
 
-The primary importance of this system is computational efficiency for therapeutic discovery. Raw genomic data is typically distributed in wide-format CSVs that are difficult to query or join with other datasets. This pipeline transforms that data into a cleaned, indexed, and searchable relational "Gold" layer. This allows researchers to instantly identify "Achilles' heels"—specific genes that cancer cells depend on for survival—without the overhead of parsing massive flat files.
+The primary importance of this system is computational efficiency for therapeutic discovery. By transforming wide-format CSVs into a cleaned, indexed, and searchable Lakehouse architecture, researchers can instantly identify "Achilles' heels"—specific genes that cancer cells depend on for survival—without the overhead of parsing massive flat files.
+
+Evolution of the Architecture
+This project followed a phased engineering approach to ensure data integrity and scalability:
+
+Phase 1 (Validation): Utilized DuckDB and PostgreSQL to perform initial in-memory UNPIVOT operations and relational storage. This phase served as the "Proof of Concept," validating that the 21M row dataset could be normalized while maintaining biological accuracy (benchmarked against known essential genes like SNRPD3 and RPL15).
+
+Phase 2 (Scalability): Upon validation, the compute layer was migrated to Apache Spark and the storage layer to Delta Lake. This shift enables ACID transactions, time-travel versioning, and the scalability required for joining with other massive biomedical datasets.
 
 Architecture and Engineering Specs
-The system utilizes a Medallion Architecture to ensure data integrity and performance:
+The system utilizes a Medallion Architecture managed by modern orchestration:
 
-Compute: DuckDB performs in-memory, multi-threaded UNPIVOT operations, processing the 21M row dataset in approximately 60 seconds.
+Compute: Apache Spark performs distributed UNPIVOT operations, utilizing the stack expression to normalize 17,000+ gene columns into relational rows.
 
-Orchestration: Dagster manages the asset lifecycle, providing a persistent run history and event-driven automation.
+Orchestration: Dagster manages the asset lifecycle, providing observability, persistent run history, and event-driven automation via sensors.
 
-Persistence: A dedicated DAGSTER_HOME directory ensures pipeline logs and sensor states persist across system reboots.
-Storage: Containerized PostgreSQL (via Podman) provides persistent, relational storage.
+Storage (Lakehouse): Delta Lake provides the persistence layer, offering high-speed Parquet-based storage with schema enforcement and versioning.
 
-Optimization: B-Tree indexing on gene_symbol enables sub-second query performance.
-
-Data Normalization: Raw headers (e.g., A1BG (1)) are parsed into distinct gene_symbol and entrez_id columns to support relational joins with other biomedical databases.
+Data Normalization: Raw headers (e.g., A1BG (1)) are parsed into distinct gene_symbol and entrez_id columns to support relational joins with databases like TCGA or DGIdb.
 
 Installation and Usage
 1. Environment Setup
@@ -24,24 +28,14 @@ This project uses uv for deterministic dependency management.
 
 Bash
 uv sync
-2. Secret Management
-Configuration is decoupled from code via environment variables. Create a .env file in the root directory:
-
-Plaintext
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=your_secure_password
-POSTGRES_DB=crispr_db
-POSTGRES_HOST=127.0.0.1
-POSTGRES_PORT=5432
-CRISPR_CSV_PATH=/home/username/Downloads/CRISPRGeneEffect.csv
-3. Infrastructure
-Ensure Podman is active and the PostgreSQL service is running:
+2. Local Network Notebook Access
+A custom shell script is provided to launch a Jupyter Lab instance. It automatically configures the JVM flags required for Apache Arrow zero-copy memory transfers.
 
 Bash
-# Example if using a systemd-managed container
-systemctl --user start postgres
-4. Execution and Automation
-The pipeline is fully orchestrated. Once the environment is set up, launch the Dagster development server:
+chmod +x start_jupyter.sh
+./start_jupyter.sh
+3. Execution and Automation
+Launch the Dagster development server to materialize the Delta tables:
 
 Bash
 # Set the local Dagster home for persistent logging
@@ -49,35 +43,24 @@ export DAGSTER_HOME=$(pwd)/.dagster_home
 
 # Launch the orchestrator
 uv run dagster dev -f assets.py
-Manual Trigger: Navigate to the Assets tab in the UI and click Materialize.
-
-Automated Trigger: In the Automation tab, toggle the watch_crispr_csv sensor to ON. The system will now automatically refresh the "Gold" layer whenever the source CSV timestamp changes.
-
-Bash
-uv run python transform.py
-B. Indexing: Apply indexing to the Gold layer for high-speed retrieval.
-
-Bash
-psql -h 127.0.0.1 -U postgres -d crispr_db -c "CREATE INDEX idx_gene_symbol ON gene_effects(gene_symbol);"
-C. Genomic Search: Utility script for sub-second gene dependency lookups.
-
-Bash
-uv run python gene_search.py
 Engineering Notes
-Security: Password prompts are bypassed using a .pgpass file with 0600 permissions, ensuring credentials are never exposed in system process lists.
+JVM Tuning: To support high-speed data transfer between Spark and Python (via Arrow), the system utilizes specific JVM "add-opens" flags: --add-opens=java.base/java.nio=ALL-UNNAMED.
 
-Data Cleaning: The pipeline utilizes regex and string splitting within the DuckDB layer to ensure symbols match standard NCBI nomenclature.
+Memory Management: For exploratory analysis in Jupyter, the pipeline is configured to use standard serialization or limited sampling to maintain stability on host machines with Java 17+.
 
-Scalability: The architecture is designed for vertical scaling, utilizing all available CPU cores on the host machine for data ingestion.
+Persistence: A dedicated .dagster_home directory ensures pipeline logs and sensor states (watching for CSV updates) persist across system reboots.
 
-Sample Project Structure:
+Sample Project Structure
+Plaintext
 crispr_project1/
 ├── .dagster_home/      # Persistent run history, logs, and sensor cursors
-├── archive/            # Historical scripts and legacy logic
-│   └── transform.py    # Original standalone ETL script (Archived)
+├── archive/            # Phase 1: DuckDB & Postgres legacy logic
+│   └── transform.py    # Original standalone ETL script
+├── data/
+│   └── delta/          # Managed Delta Lake storage (Silver/Gold Layers)
 ├── .env                # Local secrets and path configurations (Git-ignored)
-├── .gitignore          # Prevents environment and home data from being tracked
-├── assets.py           # Core Dagster definitions (Assets, Sensors, Jobs)
-├── gene_search.py      # CLI utility for sub-second gene dependency lookups
+├── assets.py           # Core Dagster definitions (Spark & Delta logic)
+├── notebooks/          # EDA and Data Quality validation (01_crispr_eda.ipynb)
+├── start_jupyter.sh    # Network-enabled Jupyter launch script with JVM flags
 ├── pyproject.toml      # Dependency management via uv
 └── README.md           # Project documentation and engineering specs
