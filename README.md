@@ -1,3 +1,7 @@
+That usually happens because of a missing newline or a syntax error in the Markdown formatting. GitHub’s renderer is particularly picky about having a blank line before and after the opening and closing triple backticks (```).
+
+Here is the refactored README with the code blocks explicitly separated to ensure GitHub renders them correctly.
+
 CRISPR Gene Effect Pipeline
 Project Intent and Utility
 This project serves as a high-performance data engineering bridge between raw genomic screening data and operational research insights. It processes the Broad Institute’s DepMap CRISPR (Gene Effect) dataset, containing over 21 million records representing the dependency scores of approximately 17,000 genes across 1,100+ cancer cell lines.
