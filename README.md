@@ -1,7 +1,3 @@
-That usually happens because of a missing newline or a syntax error in the Markdown formatting. GitHub’s renderer is particularly picky about having a blank line before and after the opening and closing triple backticks (```).
-
-Here is the refactored README with the code blocks explicitly separated to ensure GitHub renders them correctly.
-
 CRISPR Gene Effect Pipeline
 Project Intent and Utility
 This project serves as a high-performance data engineering bridge between raw genomic screening data and operational research insights. It processes the Broad Institute’s DepMap CRISPR (Gene Effect) dataset, containing over 21 million records representing the dependency scores of approximately 17,000 genes across 1,100+ cancer cell lines.
@@ -36,20 +32,23 @@ uv sync
 A custom shell script is provided to launch a Jupyter Lab instance. It automatically configures the JVM flags required for Apache Arrow zero-copy memory transfers.
 
 Bash
+```
 chmod +x start_jupyter.sh
 ./start_jupyter.sh
 3. Execution and Automation
 Launch the Dagster development server to materialize the Delta tables:
-
+```
+```
 Bash
 # Set the local Dagster home for persistent logging
 export DAGSTER_HOME=$(pwd)/.dagster_home
-
+```
+```
 # Launch the orchestrator
 uv run dagster dev -f assets.py
 Engineering Notes
 JVM Tuning: To support high-speed data transfer between Spark and Python (via Arrow), the system utilizes specific JVM "add-opens" flags: --add-opens=java.base/java.nio=ALL-UNNAMED.
-
+```
 Memory Management: For exploratory analysis in Jupyter, the pipeline is configured to use standard serialization or limited sampling to maintain stability on host machines with Java 17+.
 
 Persistence: A dedicated .dagster_home directory ensures pipeline logs and sensor states (watching for CSV updates) persist across system reboots.
