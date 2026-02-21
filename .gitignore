@@ -34,9 +34,9 @@ ENV/
 *.gz
 
 # Local Databases
-*.db
-*.duckdb
-*.sqlite
+*.db 
+*.duckdb # keep for future use
+*.sqlite # maybe
 
 # UV and Project Specifics
 .uv/
