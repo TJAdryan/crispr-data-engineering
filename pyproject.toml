@@ -11,5 +11,9 @@ dependencies = [
     "duckdb",            # Keep for quick local lookups
     "psycopg2-binary",   # Keep for Postgres connectivity
     "python-dotenv>=1.2.1",
-    "jupyterlab"
+    "jupyterlab",
+    "pandas",
+    "matplotlib",
+    "seaborn",
+    "pyarrow"
 ]
