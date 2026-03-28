@@ -1,7 +1,12 @@
 [project]
 name = "crispr-project1"
 version = "0.1.0"
+description = "High-performance CRISPR gene effect data pipeline processing 21M+ genomic screening records using Apache Spark, Delta Lake, and Dagster orchestration for cancer research insights"
+readme = "README.md"
 requires-python = ">=3.12"
+authors = [
+    { name = "TJAdryan" }
+]
 dependencies = [
     "dagster",
     "dagster-webserver",
