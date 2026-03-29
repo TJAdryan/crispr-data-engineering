@@ -1,8 +1,10 @@
 CRISPR Gene Effect Pipeline
 Project Intent and Utility
-This project serves as a high-performance data engineering bridge between raw genomic screening data and operational research insights. It processes the Broad Institute’s DepMap CRISPR (Gene Effect) dataset, containing over 21 million records representing the dependency scores of approximately 17,000 genes across 1,100+ cancer cell lines.
+This project serves as a high-performance data engineering bridge between raw genomic screening data and operational research insights. It processes the Broad Institute’s DepMap CRISPR (Gene Effect) dataset, which contains over 21 million records representing the dependency scores of approximately 17,000 genes across 1,100+ cancer cell lines.
 
-The primary importance of this system is computational efficiency for therapeutic discovery. By transforming wide-format CSVs into a cleaned, indexed, and searchable Lakehouse architecture, researchers can instantly identify "Achilles' heels"—specific genes that cancer cells depend on for survival—without the overhead of parsing massive flat files.
+The Broad Institute provides a tremendous service to the scientific community by publishing this granular detail, offering the foundational raw material necessary for modern oncology research. However, within a system database design framework, the utility of this data is significantly enhanced when transitioned from its original form into a columnar approach.
+
+Adopting a columnar architecture allows the information to be more easily parsed and acted upon by analytical engines. This structural shift requires a pivot of the underlying data model, transforming the sparse, wide-matrix or row-heavy raw files into a compressed, vectorized format optimized for the high-concurrency aggregations and gene-level filtering essential for data-driven discovery.. By transforming wide-format CSVs into a cleaned, indexed, and searchable Lakehouse architecture, researchers can instantly identify "Achilles' heels"—specific genes that cancer cells depend on for survival—without the overhead of parsing massive flat files.
 
 Evolution of the Architecture
 This project followed a phased engineering approach to ensure data integrity and scalability:
